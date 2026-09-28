@@ -12,5 +12,8 @@ compilation. These third-party dependencies retain their own licenses. They are
 not included in this repository.
 
 Nintendo and Camelot own the game, characters, graphics, music, ROM, and BIOS
-content. This repository does not include those assets or ROM-derived generated
-source. Users must supply their own legally obtained dumps.
+content. The C++ under `src/game/` and `src/generated_bios/` is mechanically
+translated from user-supplied ROM and BIOS dumps. The original ROM and BIOS
+images are not included. PolyForm Noncommercial covers the project's own code;
+it does not grant rights to the underlying game or BIOS. Users must supply
+their own dumps to build and run the game.

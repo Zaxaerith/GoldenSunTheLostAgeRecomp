@@ -4,6 +4,7 @@ param(
     [string]$ToolchainBin,
     [string]$CMakePath,
     [string]$NinjaPath,
+    [string]$PythonPath,
     [switch]$SkipGeneration
 )
 
@@ -115,6 +116,11 @@ if (-not $SkipGeneration) {
     Check-Exit 'Recompile ROM'
     & $generator --bios $Bios --out $biosOut
     Check-Exit 'Recompile BIOS'
+    $python = Require-Tool $PythonPath 'python.exe'
+    & $python (Join-Path $PSScriptRoot 'organize_generated.py')
+    Check-Exit 'Organize cartridge source'
+} elseif (-not (Test-Path -LiteralPath (Join-Path $root 'src\game\recompiled.h'))) {
+    throw 'src/game/ is missing; rebuild without -SkipGeneration.'
 }
 
 & $cmake -S $root -B $build @cmakeCommon

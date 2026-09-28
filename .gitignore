@@ -28,10 +28,16 @@ AGENT_PROMPT.md
 !/THIRD_PARTY_NOTICES.md
 !/scripts/
 !/scripts/build.ps1
+!/scripts/organize_generated.py
 !/src/
 !/src/runtime/
 !/src/runtime/main.cpp
 !/src/patches/
 !/src/patches/*.cpp
+!/src/game/
+!/src/game/*.cpp
+!/src/game/*.h
+!/src/generated_bios/
+!/src/generated_bios/*.cpp
+!/src/generated_bios/*.h
 /src/generated/
-/src/generated_bios/

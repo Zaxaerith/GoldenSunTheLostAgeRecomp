@@ -17,9 +17,9 @@ if(NOT EXISTS "${GBARECOMP_SOURCE_DIR}/CMakeLists.txt" OR
    NOT EXISTS "${SDL2_LIBRARY}")
     message(FATAL_ERROR "Dependencies are missing. Run scripts/build.ps1 first.")
 endif()
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/recompiled.h" OR
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/game/recompiled.h" OR
    NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/generated_bios/bios_recompiled.h")
-    message(FATAL_ERROR "Local ROM/BIOS output is missing. Run scripts/build.ps1 first.")
+    message(FATAL_ERROR "Recompiled source is missing. Run scripts/build.ps1 first.")
 endif()
 
 add_subdirectory("${GBARECOMP_SOURCE_DIR}" framework)
@@ -51,20 +51,14 @@ target_include_directories(gbarecomp_runtime PRIVATE
 target_compile_definitions(gbarecomp_runtime PUBLIC GBARECOMP_HAVE_BIOS_RECOMP=1)
 
 file(GLOB GBARECOMP_SHARDS CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/recompiled_*.cpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/game/*.cpp")
 if(NOT GBARECOMP_SHARDS)
-    message(FATAL_ERROR "No locally generated cart shards found.")
+    message(FATAL_ERROR "No organized cartridge source found in src/game.")
 endif()
-set(GBARECOMP_GAME_SOURCES ${GBARECOMP_SHARDS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/dispatch_table.cpp")
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/symbol_map.cpp")
-    list(APPEND GBARECOMP_GAME_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/symbol_map.cpp")
-endif()
-add_library(gbarecomp_game STATIC ${GBARECOMP_GAME_SOURCES})
+add_library(gbarecomp_game STATIC ${GBARECOMP_SHARDS})
 target_include_directories(gbarecomp_game PRIVATE
     "${GBARECOMP_SOURCE_DIR}/src/armv4t"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generated")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/game")
 
 add_executable(gs2 WIN32 src/runtime/main.cpp)
 if(MINGW)
