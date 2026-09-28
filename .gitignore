@@ -1,0 +1,37 @@
+# Publish only the reviewed source manifest below. In particular, ROM/BIOS
+# dumps, saves, generated code, logs, archives, and local build products stay local.
+*
+AGENT_PROMPT.md
+*.gba
+*.sav
+*.bin
+*.json
+*.txt
+*.bmp
+*.png
+*.zip
+*.7z
+*.tar
+*.gz
+/build/
+/reference/
+/recomp/
+/recomp_cache/
+/docs/
+/.gh-auth/
+/release-smoke*/
+
+!/.gitignore
+!/CMakeLists.txt
+!/LICENSE
+!/README.md
+!/THIRD_PARTY_NOTICES.md
+!/scripts/
+!/scripts/build.ps1
+!/src/
+!/src/runtime/
+!/src/runtime/main.cpp
+!/src/patches/
+!/src/patches/*.cpp
+/src/generated/
+/src/generated_bios/
