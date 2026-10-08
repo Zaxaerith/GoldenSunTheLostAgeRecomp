@@ -1,0 +1,22 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Golden Sun: The Lost Age",
+  "system": "GBA",
+  "type": "recomp",
+  "project": "Golden Sun: The Lost Age Recomp",
+  "status": "playable",
+  "targets": [
+    "Windows"
+  ],
+  "toolchain": "GBARecomp",
+  "original": {
+    "region": "USA",
+    "sha1": "b500663220cb9bf56b9f8e8c0c544f1d6fa3a824"
+  },
+  "maintainers": [
+    {
+      "name": "Zaxaerith",
+      "link": "https://github.com/Zaxaerith"
+    }
+  ]
+}
