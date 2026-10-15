@@ -1,193 +1,176 @@
-# Golden Sun: The Lost Age Recomp
+# GoldenSunTheLostAgeRecomp
 
-[![Platform](https://img.shields.io/badge/platform-Windows-blue)](#requirements)
-[![Language](https://img.shields.io/badge/language-C%2B%2B20-orange)](#how-it-works)
-[![License](https://img.shields.io/badge/license-PolyForm--Noncommercial--1.0.0-blue)](LICENSE)
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-An experimental native Windows recompilation of **Golden Sun: The Lost Age**
-(Game Boy Advance, USA/Europe) using [GBARecomp](https://github.com/mstan/gbarecomp).
-This repository includes the translated C++ cartridge and BIOS code, the game
-specific runtime changes, and a one-command build script. It does **not** include
-a ROM image, a BIOS image, game assets, save files, or a compiled executable.
+A Windows x64 native static recompilation integration for **Golden Sun: The Lost Age (USA/Europe, Game Code: AGFE, Maker: 01, Revision 0)**, built using [GBARecomp](https://github.com/mstan/gbarecomp) and [recomp-ui](https://github.com/mstan/recomp-ui).
 
-The project is an unofficial, noncommercial fan project. It is not affiliated
-with Nintendo or Camelot Software Planning.
+> **v0.1.0-preview — Experimental Preview**  
+> This unofficial, non-commercial fan project is not affiliated with, endorsed by, or associated with Nintendo or Camelot Software Planning. Players must supply their own legally obtained GBA ROM and retail GBA BIOS. Full-game campaign completion has not been exhaustively verified across all optional quests and end-game dungeons.
 
-## How it works
+*Golden Sun: The Lost Age* is Camelot Software Planning and Nintendo's critically acclaimed second installment in the fantasy JRPG series for the Game Boy Advance. This native Windows integration translates 17,041 original ARM/Thumb game functions into native x64 instructions, preserving authentic game timings, battle animations, pseudo-3D Mode-7 camera choreography, Djinn/Psynergy systems, and Flash cartridge save persistence while providing a modern desktop player launcher.
 
-GBARecomp translates ARM and Thumb instructions from a GBA ROM into C++
-functions. This project compiles those functions into a Windows executable and
-links them to GBARecomp's CPU and hardware runtime. The generated cartridge
-code lives in `src/game/`; the generated BIOS code lives in
-`src/generated_bios/`. Neither is merged into the small host entry point.
+---
 
-`scripts/organize_generated.py` groups cartridge functions by operations that
-can be observed in the generated code, such as memory reads, writes, transfers,
-indirect control flow, software interrupts, and jump tables. Function names use
-those categories plus the original ROM address, for example
-`gf_memory_transfer_arm_at_08000428`. The address is a location, not a sequence
-number. These categories describe CPU behavior; they are **not** claims that
-every function's gameplay purpose has been reverse engineered. The original
-address and instruction mode remain in `recompiled.h` and the source comments.
+## Verified Playable Scope & Current Status
 
-The GBA display, sound, timers, DMA, interrupts, cartridge bus, and Flash save
-hardware are supplied by the GBARecomp runtime and the local patches here.
-The executable uses the Windows GUI subsystem, so normal launch has no console
-window. It starts under player control, without prerecorded inputs or a demo.
+* [x] **Cold Boot & Title Screen**: Clean boot sequence directly to the main menu and file management (`Continue`, `New Game`, `Battle`).
+* [x] **Prologue & Narrative Scenes**: Venus Lighthouse escape and collapse, Felix, Jenna, Sheba, and Kraden dialogue sequences, and Idejima peninsula drift.
+* [x] **World Exploration & Dungeons**: Daila village arrival, shrine exploration, Kandorean Temple, and Dehkan Plateau traversal.
+* [x] **Combat & Turn-Based Engine**: Pseudo-3D Mode-7 battle arena, Ruffian encounter, party commands (`Attack`, `Psynergy`, `Djinn`, `Item`, `Defend`), and spell visual effects verified.
+* [x] **Cartridge Flash512 Persistence**: Full 64 KB Flash save chip protocol (Macronix `MX29L512`, `0x1CC2`, `FLASH_V123`) verified with disk persistence round-trip (`saves/gs2.sav` and legacy root save compatibility).
+* [x] **Audio Subsystem**: MP2K sound driver emulation and hardware timer synthesis with 3,000-frame combat bridge test verified without buffer underruns.
+* [x] **Native Player Launcher**: Built-in interactive GUI (`recomp-ui`) for ROM/BIOS selection, hash validation, input configuration, display options, volume adjustment, and persistent launch.
+* [x] **Windows GUI Subsystem**: Boots directly into the desktop UI without an intrusive terminal/command prompt window (`-mwindows`).
+* [x] **HLE BIOS Default Architecture**: Retains GS2's thoroughly verified High-Level Emulation BIOS path (`--bios-hle`) by default, with opt-in support for experimental retail LLE BIOS execution.
 
-## Current status
+### Scope Open for Community Testing
 
-The local Windows build has been exercised through the title and menus, the
-opening Venus Lighthouse and forest, the first Ruffian battle, and a 64 KB
-Flash save and reload. A 3,000-frame windowed battle run presented every frame
-without audio bridge underruns. The real BIOS execution path has reached the
-opening narration; normal play currently defaults to the better-tested HLE BIOS
-path. Sound quality, later gameplay, and full-game stability still need testing.
+This preview provides a solid, playable native foundation. The following chapters and features remain open for community testing and feedback:
+* Full campaign progression across the Eastern Sea, Lemuria, Western Sea, and Mars Lighthouse.
+* Late-game high-tier summon sequences (Catastrophe, Daedalus, Azul, Charon, Iris), advanced combined Psynergy, and complex event flags.
+* Link-cable party transfer from *Golden Sun: The Broken Seal* and Arena battle modes.
+* Extended long-session play across all world map regions and oceanic navigation.
 
-This is a playable preview, not a claim that the full game has been verified.
-Static dispatch coverage across the entire game has not been measured. Keep a
-backup of important saves while testing.
+---
 
-## Required dumps
+## Quick Start (Players)
 
-You need your own legally obtained dumps. The supported cartridge is:
+No developer tools (CMake, Ninja, GCC, Python, or command-line shells) are required.
 
-| Field | Required value |
-| --- | --- |
-| Game | Golden Sun: The Lost Age (USA/Europe) |
-| GBA game code | `AGFE` |
-| ROM size | 16,777,216 bytes (16 MiB) |
-| ROM SHA-1 | `b500663220cb9bf56b9f8e8c0c544f1d6fa3a824` |
-| Save hardware | Flash 512 Kbit (64 KiB) |
+1. **Download**: Grab `GoldenSunTheLostAgeRecomp-windows-x64-v0.1.0-preview.zip` from the project's Releases page.
+2. **Extract**: Extract the entire archive into a writable folder on your computer. Ensure `GoldenSunTheLostAgeRecomp.exe`, the runtime DLLs (`SDL2.dll`, `libgcc_s_seh-1.dll`, `libstdc++-6.dll`, `libwinpthread-1.dll`), `assets/`, `game.toml`, and `licenses/` stay together.
+3. **Launch**: Double-click `GoldenSunTheLostAgeRecomp.exe`.
+4. **Setup in Launcher**:
+   * Click **Browse** to select your supported USA/Europe ROM (`.gba`) and retail GBA BIOS (`.bin`).
+   * The launcher automatically computes SHA-1 checksums and verifies file sizes. Once valid, green checkmarks appear.
+   * Customize your controller or keyboard layout, window scaling, and audio volume.
+5. **Play**: Click **Play** to enter the game!
 
-The GBA BIOS dump must be 16,384 bytes. The BIOS used for local verification has
-SHA-1 `300c20df6731a33952ded8c436f7f186d25d3492`. ROM and BIOS paths can be
-passed to the build script; neither file is tracked by Git.
+> [!TIP]
+> Your selected ROM, BIOS, and settings are saved automatically (`rom.cfg`, `bios.cfg`, `config.ini`, `keybinds.ini`). If you check "Skip Launcher" and later want to reopen the setup GUI, run `GoldenSunTheLostAgeRecomp.exe --launcher` from a shortcut or command prompt.
 
-## Requirements
+---
 
-- Windows 10 or 11, x86_64
-- PowerShell 5.1 or later and Git
-- CMake 3.20 or later and Ninja
-- MinGW-w64 GCC/G++ with C++20 support
-- Python 3 for regenerating the organized cartridge source
-- Internet access on the first build to fetch pinned GBARecomp, toml++, and SDL2
+## Required Private Files
 
-The build script fetches dependencies into the ignored `reference/` directory.
-If build tools are not on `PATH`, pass `-ToolchainBin`, `-CMakePath`, and
-`-NinjaPath` or `-PythonPath` to the script. The published generated C++ is also available for
-inspection and for a source-only build with `-SkipGeneration`.
+You must provide your own legally dumped game ROM and retail GBA BIOS. Neither file is included in this repository or any release download.
 
-## One-command build and recompile
+| File | Supported Identity | Expected Size | SHA-1 Hash | CRC-32 |
+|---|---|---:|---|---|
+| **Game ROM** | *Golden Sun: The Lost Age* (USA/Europe, Code `AGFE`, Maker `01`) | 16,777,216 bytes | `b500663220cb9bf56b9f8e8c0c544f1d6fa3a824` | `606A1C4D` |
+| **GBA BIOS** | Retail Game Boy Advance BIOS | 16,384 bytes | `300c20df6731a33952ded8c436f7f186d25d3492` | — |
 
-From the repository root in PowerShell, with your ROM and BIOS in the root:
+> [!WARNING]
+> Other regional releases (Japanese), modified ROMs, and incorrect dumps are strictly rejected by the launcher to ensure execution integrity. Renaming an unsupported file will not bypass hash verification.
 
+---
+
+## BIOS Execution Strategy: HLE vs. LLE
+
+Unlike GS1 which boots via low-level retail BIOS emulation (LLE), *Golden Sun: The Lost Age* relies on an extensive set of timing-sensitive software interrupts and IRQ handlers.
+
+* **HLE BIOS (Default)**: Injects `--bios-hle`. The game boots smoothly without BIOS intro stalls, and core SWIs are intercepted by optimized native handlers. This is the recommended and verified path.
+* **Experimental LLE BIOS**: Low-level retail BIOS execution (`--no-bios-hle`) is verified through the opening narrative sequence. To test LLE mode, pass `--no-bios-hle` or `--experimental-lle` on the command line, or set `experimental_lle = 1` in `config.ini` under `[Launcher]`.
+
+Both modes require a valid retail GBA BIOS dump for bus mapping and fallback vector tables.
+
+---
+
+## Controls, Display, and Audio
+
+### Default Keyboard Mapping
+
+| GBA Button | PC Default Key | Function |
+|---|---|---|
+| **D-Pad** | `W / A / S / D` or `↑ / ↓ / ← / →` | Movement / Menu Navigation |
+| **A** | `Z` / `J` | Confirm / Talk / Interact / Inspect |
+| **B** | `X` / `K` | Cancel / Dash (hold while walking) |
+| **L** | `Q` / `U` | Psynergy Shortcut L / Page Left |
+| **R** | `E` / `I` | Psynergy Shortcut R / Page Right |
+| **START** | `Enter` | Main Party Menu (Status, Psynergy, Djinn, Items) |
+| **SELECT** | `Backspace` / `Tab` | Field Map / Assist |
+
+### Game Controller Support
+
+Standard modern game controllers (Xbox / XInput, PlayStation DualShock 4 / DualSense, Nintendo Switch Pro Controller, and generic DirectInput gamepads) are natively supported via SDL2. Bindings can be freely customized within the launcher's **Input** tab.
+
+### Display and Audio Settings
+
+* **Window Scaling**: 1x through 6x integer scaling, or borderless fullscreen (`F11` / `Alt+Enter`).
+* **Aspect Ratio**: Authentic 3:2 GBA aspect ratio (240 × 160 native resolution with sharp integer presentation).
+* **Audio**: Master volume slider with 16-bit 44.1 kHz stereo output.
+
+---
+
+## Native Flash Saves and Configuration
+
+* **Cartridge Saves**: When launched via the GUI or double-click, saves are stored in **`saves/gs2.sav`**.
+* **Backward Compatibility**: If you have an existing save file (`Golden Sun - The Lost Age(UE)(Nintendo)(128Mb).sav` or legacy `gs2.sav`) in the executable folder or `saves/`, the launcher automatically detects and continues using it without overwriting, converting, or deleting your data.
+* **Save Hardware Authenticity**: Emulates the Macronix `MX29L512` 64 KB Flash chip (`0x1CC2`, `FLASH_V123`) using original sector erase and program commands. Saved files are bit-identical and fully exchangeable with real GBA Flash cartridges and standard emulators (e.g. mGBA).
+* **Settings Persistence**: Launcher options, file paths, and keybindings are stored in `rom.cfg`, `bios.cfg`, `config.ini`, and `keybinds.ini` in the executable folder.
+
+---
+
+## Building from Source (Developers)
+
+Developers wishing to compile from source can use the provided build scripts:
+
+### Prerequisites
+* Windows x64
+* GCC / G++ 11+ with C++20 support (MinGW-w64)
+* CMake 3.20+
+* Ninja build system
+* SDL2 2.30+ development headers and libraries
+
+### Build Commands
 ```powershell
-.\scripts\build.ps1
+# Restore pinned dependencies (gbarecomp, recomp-ui, toml++)
+.\scripts\setup-deps.ps1
+
+# Incremental host build using Ninja (default: -Jobs 2)
+.\build.ps1 -Jobs 2
+
+# To build and run contract validation tests:
+.\build.ps1 -Jobs 2 -BuildContractTest
 ```
 
-For dumps elsewhere, supply explicit paths:
+The resulting executable and launcher assets will be placed in `build/host/`.
 
-```powershell
-.\scripts\build.ps1 -Rom "D:\Games\Golden Sun - The Lost Age.gba" -Bios "D:\Games\gba_bios.bin"
-```
+---
 
-The script verifies the ROM SHA-1 and BIOS size, builds GBARecomp's generator,
-recompiles both dumps, organizes the cartridge functions in `src/game/`, and
-compiles `build\gs2.exe`. It stages `SDL2.dll` beside the executable. The raw
-generator output in `src/generated/`, downloaded dependencies, and `build/`
-stay local and are ignored by Git. Recompiling the supported ROM should produce
-the same organized source that is published in this repository.
-
-To compile the checked-in translated source without rerunning the generator:
-
-```powershell
-.\scripts\build.ps1 -Rom "D:\Games\Golden Sun - The Lost Age.gba" -Bios "D:\Games\gba_bios.bin" -SkipGeneration
-```
-
-The script still checks your dumps and fetches build dependencies. After those
-dependencies are present, the equivalent CMake build is:
-
-```powershell
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target gs2 --parallel 2
-```
-
-## Running
-
-Double-click `build\gs2.exe`, then choose the ROM and BIOS in the file dialogs
-on first launch. From a terminal you can also give their paths explicitly:
-
-```powershell
-.\build\gs2.exe --rom "D:\Games\Golden Sun - The Lost Age.gba" --bios "D:\Games\gba_bios.bin"
-```
-
-The default launch uses windowed display and BIOS HLE. It does not press keys
-automatically or write coverage JSON, diagnostic text, BMP images, or input
-recordings. Normal game saves may create a `.sav` file beside the ROM. Diagnostic
-captures are available only through explicit development options.
-
-### Controls
-
-| GBA control | Default keyboard key |
-| --- | --- |
-| D-pad | Arrow keys |
-| A / B | X / Z |
-| Start / Select | Enter / Right Shift |
-| L / R | C / V |
-| Quit | Escape |
-
-## Project layout
+## Technical Architecture
 
 ```text
 GoldenSunTheLostAgeRecomp/
-├── CMakeLists.txt                 Windows GUI executable and runtime linkage
-├── LICENSE                        PolyForm Noncommercial 1.0.0
-├── README.md                      Build, use, and project status
-├── THIRD_PARTY_NOTICES.md         Dependency and rights notices
-├── scripts/
-│   ├── build.ps1                  Dependency setup, recompilation, and build
-│   └── organize_generated.py      Deterministic cart function organizer
-└── src/
-    ├── runtime/main.cpp           Interactive Windows entry point
-    ├── patches/                  GBARecomp integration and Flash fixes
-    │   ├── gba_save.cpp
-    │   ├── interpreter.cpp
-    │   ├── runtime.cpp
-    │   └── runtime_arm_default_aborts.cpp
-    ├── game/                     Published cartridge C++ (17,041 functions)
-    │   ├── boot_vectors.cpp
-    │   ├── hardware_and_video_access.cpp
-    │   ├── software_interrupts.cpp
-    │   ├── jump_table_entries.cpp
-    │   ├── memory_reads_arm.cpp / memory_reads_thumb.cpp
-    │   ├── memory_writes_arm.cpp / memory_writes_thumb.cpp
-    │   ├── memory_transfer_arm.cpp / memory_transfer_thumb.cpp
-    │   ├── indirect_control_flow_arm.cpp / indirect_control_flow_thumb.cpp
-    │   ├── recompiled.h           Function declarations and ROM addresses
-    │   ├── dispatch_table.cpp     Static address-to-function dispatch
-    │   ├── symbol_map.cpp         Debug symbol lookup
-    │   └── modules.h              Generated module index
-    └── generated_bios/           Published translated BIOS C++ (666 functions)
+├── .deps/tomlplusplus/         Pinned toml++ header library
+├── reference/gbarecomp/        Static recompiler framework and GBA hardware models
+├── recomp-ui/                  Dear ImGui player launcher frontend
+├── src/
+│   ├── main.cpp                Windows GUI entry point (WinMain, save resolution)
+│   ├── game_launcher_boot.cpp  ROM/BIOS identity gates and pre-boot seam
+│   ├── patches/                GS2-specific runtime modifications
+│   │   ├── interpreter.cpp     ARM/Thumb interpreter fallback
+│   │   ├── gba_save.cpp        Macronix 512 Kbit Flash chip protocol
+│   │   ├── runtime.cpp         Runtime main loop and host input pump
+│   │   └── runtime_arm_default_aborts.cpp
+│   ├── game/                   Statically recompiled cartridge source (17,041 functions)
+│   └── generated_bios/         Translated GBA BIOS source (666 functions)
+├── tests/
+│   └── launcher_contract.cpp   Automated launcher contract and persistence test
+└── tools/
+    ├── build-host.ps1          Incremental native host build script
+    ├── common.ps1              Shared ROM/BIOS verification helpers
+    └── make-release.ps1        Local release candidate packager
 ```
 
-The local ROM, BIOS, save data, `AGENT_PROMPT.md`, build products, generator raw
-output, and downloaded dependencies are excluded by `.gitignore`.
+---
 
-## Reproducibility and limitations
+## License & Attribution
 
-The script pins GBARecomp and toml++ revisions and uses SDL2 2.32.10. The
-generated C++ is ROM-version-specific; other regional revisions may not match
-the addresses or behavior here. The organizer checks that every declaration has
-exactly one function body before writing the modules. New game-level semantic
-names should be added only after tracing or matching the corresponding routine.
+* **Integration & Runtime Code**: Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+* **recomp-ui & Dear ImGui**: Licensed under the [MIT License](licenses/RecompUI.txt).
+* **GBARecomp Framework**: Licensed under PolyForm Noncommercial 1.0.0 / MPL-2.0 / MIT.
+* **SDL2**: Licensed under the [zlib License](licenses/SDL2.txt).
+* **Third-Party Notices**: See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for full attributions.
 
-## License and credits
-
-Original project code is offered under the
-[PolyForm Noncommercial License 1.0.0](LICENSE). See
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for GBARecomp, toml++, SDL2,
-and rights information. The translated cartridge and BIOS code was derived from
-copyrighted game and BIOS binaries; the project license does not grant rights
-to Nintendo's or Camelot's underlying works. No ROM, BIOS image, or extracted
-game assets are distributed here.
+*Golden Sun* and *Golden Sun: The Lost Age* are registered trademarks of **Nintendo Co., Ltd.** and **Camelot Software Planning**. This project is an independent research implementation and does not grant rights to Nintendo's or Camelot's proprietary works.

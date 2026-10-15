@@ -1,0 +1,264 @@
+# game.toml — Golden Sun: The Lost Age (AGFE) reviewed recompile config.
+# Human-reviewed from runtime miss logs / IRQ traces. NEVER auto-merged
+# from recomp_master_misses_*.toml.frag; each entry below was checked
+# against the miss site's shape (function entry vs interior vs jump case).
+#
+# Schema: reference/gbarecomp/docs/TOML_SCHEMA.md
+
+[program]
+name         = "Golden Sun: The Lost Age"
+id           = "AGFE"
+load_address = 0x08000000
+size         = 0x01000000
+entry_pc     = 0x08000428
+# Keep the finder's default speculative literal harvest so previously
+# discovered entry points are not lost. Extra_func still seeds gaps.
+
+[identity]
+sha1 = "b500663220cb9bf56b9f8e8c0c544f1d6fa3a824"
+
+# ── Wait-flag helper (0x08013522..0x08013546) ─────────────────────────
+# Traced: ldrh/ands/cmp/beq spin for *flag & mask; VBlank returns land on
+# interior labels 0x0801353A/3C/3E/40/42. Keep the host function whole.
+[[resume_range]]
+start = 0x08013522
+end   = 0x08013546
+mode  = "thumb"
+note  = "gf_wait_for_masked_flag_* — interior IRQ return PCs observed"
+
+# ── Window present / frame bridge cluster (0x080AD9B4..0x080AD9D8) ───
+# Prior session: window present path; many interior resumes in a short
+# function already rooted at 0x080AD95A / 0x080AD9DC.
+[[resume_range]]
+start = 0x080AD9B4
+end   = 0x080AD9D8
+mode  = "thumb"
+note  = "present/frame bridge interior resumes (window path)"
+
+# ── ROM entries the finder missed (hot bridged PCs) ───────────────────
+# 0x081A78C0: bridged x299 on a 600-frame smoke, NOT a jump-table
+# candidate — treat as a standalone thumb entry.
+[[extra_func]]
+addr = 0x081A78C0
+mode = "thumb"
+name = "tfunc_081A78C0"
+note = "hot bridged ROM entry (x299); finder gap 0x081979AC..0x081AC000"
+
+# Jump-case targets into the same finder gap. Prefer a sized
+# [[jump_table]] once the abs32 base is identified; until then seed the
+# observed case PCs so the region is at least statically reachable.
+[[extra_func]]
+addr = 0x081A60A6
+mode = "thumb"
+note = "miss x298; jump-table candidate — review for sized [[jump_table]]"
+
+[[extra_func]]
+addr = 0x081A60AA
+mode = "thumb"
+note = "miss x298; jump-table candidate — review for sized [[jump_table]]"
+
+[[extra_func]]
+addr = 0x081A7658
+mode = "thumb"
+note = "miss x120; jump-table candidate"
+
+[[extra_func]]
+addr = 0x081A7828
+mode = "thumb"
+note = "miss x120; jump-table candidate"
+
+# Sparse bridge points in the same band (x1 each) — seed as resume so a
+# containing routine is preferred over a standalone stub when one exists.
+[[extra_func]]
+addr = 0x081A6040
+mode = "thumb"
+resume = true
+note = "observed bridge x1"
+
+[[extra_func]]
+addr = 0x081A607C
+mode = "thumb"
+resume = true
+note = "observed bridge x1"
+
+[[extra_func]]
+addr = 0x081A755E
+mode = "thumb"
+resume = true
+note = "observed bridge x1"
+
+[[extra_func]]
+addr = 0x081A75A0
+mode = "thumb"
+resume = true
+note = "observed bridge x1"
+
+
+# ── Second-pass miss review (post first game.toml merge) ─────────────
+# Hot standalone ROM entries still missing from static dispatch.
+[[extra_func]]
+addr = 0x081A6B50
+mode = "thumb"
+note = "bridged x664 after first merge; standalone entry in finder gap"
+
+[[extra_func]]
+addr = 0x081A6132
+mode = "thumb"
+note = "bridged x526 after first merge; standalone entry in finder gap"
+
+[[extra_func]]
+addr = 0x081A6A86
+mode = "thumb"
+note = "bridged x96 after first merge"
+
+[[extra_func]]
+addr = 0x0800066E
+mode = "thumb"
+note = "bridged x13; near boot/init"
+
+# Jump-case PCs into the same gap (review for a sized [[jump_table]]).
+[[extra_func]]
+addr = 0x081A74D8
+mode = "thumb"
+note = "jt candidate x81"
+
+[[extra_func]]
+addr = 0x081A74E0
+mode = "thumb"
+note = "jt candidate x80"
+
+[[extra_func]]
+addr = 0x081A68E6
+mode = "thumb"
+note = "jt candidate x68"
+
+[[extra_func]]
+addr = 0x081A6E22
+mode = "thumb"
+note = "jt candidate x45"
+
+[[extra_func]]
+addr = 0x081A6880
+mode = "thumb"
+note = "jt candidate x16"
+
+# 0x081C1774..0x081C18BA dense jump-case run (auto table seen nearby at 0x081C31E8).
+[[extra_func]]
+addr = 0x081C1774
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C177C
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1798
+mode = "thumb"
+note = "jt cluster x46"
+
+[[extra_func]]
+addr = 0x081C17E8
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C17EE
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C17FC
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1802
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1810
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C182A
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1832
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C183A
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1840
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1846
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C1854
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C185A
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C18B4
+mode = "thumb"
+note = "jt cluster"
+
+[[extra_func]]
+addr = 0x081C18BA
+mode = "thumb"
+note = "jt cluster"
+# Third-pass: remaining hot ROM miss after second merge.
+[[extra_func]]
+addr = 0x081C0AD2
+mode = "thumb"
+note = "bridged x48 after second merge; last hot standalone ROM miss"
+
+[[extra_func]]
+addr = 0x081A65DC
+mode = "thumb"
+resume = true
+note = "jt candidate x5"
+
+[[extra_func]]
+addr = 0x081A65F8
+mode = "thumb"
+resume = true
+note = "jt candidate x5"
+
+[[extra_func]]
+addr = 0x081A73CC
+mode = "thumb"
+resume = true
+note = "jt candidate x5"
+
+[[extra_func]]
+addr = 0x081A73D8
+mode = "thumb"
+resume = true
+note = "jt candidate x5"
+
+[[extra_func]]
+addr = 0x081A8210
+mode = "thumb"
+resume = true
+note = "jt candidate x5"

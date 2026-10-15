@@ -2060,6 +2060,23 @@ int run_game(int argc, char** argv, const RunOptions& opts) {
         std::printf("input_replay=DISABLED\n");
     }
 
+    // Host KEYINPUT + KEYCNT (GBATEK): when IRQ-enable is set and the pressed
+    // set matches the key mask (OR/AND via bit15), raise IrqKeypad. Stock
+    // set_keyinput only writes the KEYINPUT register, so games that wait on a
+    // key interrupt never see input.
+    auto apply_host_keyinput = [&](uint16_t keys) {
+        bus.io().set_keyinput(keys);
+        const uint16_t keycnt = bus.io().read16(0x00000132u);
+        if ((keycnt & 0x4000u) == 0) return;
+        const uint16_t mask = static_cast<uint16_t>(keycnt & 0x03FFu);
+        if (mask == 0) return;
+        const uint16_t pressed =
+            static_cast<uint16_t>((~keys) & 0x03FFu);
+        const uint16_t hit = static_cast<uint16_t>(pressed & mask);
+        const bool and_mode = (keycnt & 0x8000u) != 0;
+        const bool fire = and_mode ? (hit == mask) : (hit != 0);
+        if (fire) bus.io().request_irq(1u << 12);  // IrqKeypad
+    };
     auto apply_input_replay = [&]() {
         if (!input_replay_requested) return;
         const uint64_t frame = ppu.frame_count();
@@ -2068,14 +2085,14 @@ int run_game(int argc, char** argv, const RunOptions& opts) {
             ++input_replay_index;
         }
         if (input_replay_events[input_replay_index].frame <= frame)
-            bus.io().set_keyinput(
+            apply_host_keyinput(
                 input_replay_events[input_replay_index].keyinput);
     };
 
     auto pump_host_input = [&]() {
         if (!args.window) return;
         auto ev = win.pump();
-        if (!input_replay_requested) bus.io().set_keyinput(ev.keyinput);
+        if (!input_replay_requested) apply_host_keyinput(ev.keyinput);
         if (input_record_requested &&
             (!input_record_have_value || ev.keyinput != input_record_last_value)) {
             char row[64];
@@ -2461,7 +2478,7 @@ int run_game(int argc, char** argv, const RunOptions& opts) {
                         : (demo_campaign && fc >= kCampaignWalkStart)
                             ? walk_keyinput_for_frame(fc - kCampaignWalkStart)
                             : demo_keyinput_for_frame(fc);
-                bus.io().set_keyinput(keys);
+                apply_host_keyinput(keys);
             }
         }
         // Widescreen sidecar: capture the live tilemap ring once per guest

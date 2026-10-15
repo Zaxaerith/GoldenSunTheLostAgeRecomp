@@ -20,6 +20,19 @@ FUNCTION = re.compile(
 )
 IDENTIFIER = re.compile(r"\bgf_\w+\b")
 
+# Game-level names confirmed by execution traces (hang_trace / input replay).
+# Address remains the source of truth; these replace only the generated
+# gf_* identifier. Add a name only after tracing the routine.
+SEMANTIC_RENAMES = {
+    # Spin-wait: ldrh r2,[r0]; ands r3,r1,r2; beq back  (wait for *flag & mask)
+    # 0x0801352E / 0x0801353A are resume aliases inside 0x08013522 after
+    # game.toml [[resume_range]] — no standalone rename needed.
+    0x08013522: "gf_wait_for_masked_flag_if_nonzero_at_08013522",
+    # IRQ-side completion: ++counter, *done_flag = 1 (IntrWait-style wakeup)
+    0x08013AFA: "gf_irq_complete_and_set_flag_at_08013AFA",
+    0x08013AF6: "gf_irq_complete_tail_at_08013AF6",
+}
+
 
 def category(old_name: str, body: str, mode: str) -> str:
     if old_name == "gf_start_vector":
@@ -70,7 +83,8 @@ def organize(raw: Path, output: Path) -> None:
     for old_name, (address, mode) in address_by_name.items():
         module = category(old_name, chunks[old_name], mode)
         module_for[old_name] = module
-        rename[old_name] = f"gf_{module}_at_{address:08X}"
+        semantic = SEMANTIC_RENAMES.get(address)
+        rename[old_name] = semantic if semantic else f"gf_{module}_at_{address:08X}"
     if len(set(rename.values())) != len(rename):
         raise ValueError("Two functions received the same name")
 

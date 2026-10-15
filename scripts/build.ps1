@@ -112,7 +112,12 @@ if (-not $SkipGeneration) {
     $cartOut = Join-Path $root 'src\generated'
     $biosOut = Join-Path $root 'src\generated_bios'
     New-Item -ItemType Directory -Path $cartOut,$biosOut -Force | Out-Null
-    & $generator --rom $Rom --out $cartOut
+    $gameToml = Join-Path $root 'game.toml'
+    $romArgs = @('--rom', $Rom, '--out', $cartOut)
+    if (Test-Path -LiteralPath $gameToml) {
+        $romArgs += @('--config', $gameToml)
+    }
+    & $generator @romArgs
     Check-Exit 'Recompile ROM'
     & $generator --bios $Bios --out $biosOut
     Check-Exit 'Recompile BIOS'
